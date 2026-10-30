@@ -12,14 +12,18 @@ jobs:
     if: github.event.label.name == 'verify-fix' && github.event.sender.login == 'u-pump' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Authorize private Unfix install
+      - name: Check private Unfix credential
         shell: bash
         env:
           CPLUS_REPO_TOKEN: ${{ secrets.CPLUS_REPO_TOKEN }}
-        run: |
-          test -n "$CPLUS_REPO_TOKEN"
-          git config --global url."https://x-access-token:${CPLUS_REPO_TOKEN}@github.com/u-pump/c-plus".insteadOf "https://github.com/u-pump/c-plus"
+        run: test -n "$CPLUS_REPO_TOKEN"
       - uses: u-pump/c-plus/.github/actions/cplus-verify@main
+        env:
+          # Git receives the credential only in this step's environment.
+          # Do not persist it to ~/.gitconfig or the workspace.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.CPLUS_REPO_TOKEN }}@github.com/u-pump/c-plus.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/u-pump/c-plus
         with:
           project-path: .
           base: ${{ github.event.pull_request.base.ref }}
