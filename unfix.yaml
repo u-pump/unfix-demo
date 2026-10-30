@@ -1,0 +1,9 @@
+category: memory
+build: "cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build"
+test: "ctest --test-dir build --output-on-failure"
+reproduction_command: "./build/demo"
+expected_failure_signature: "AddressSanitizer"
+baseline_failure_rate: 1.0
+baseline_runs: 1
+agent_exclude:
+  - patches/**

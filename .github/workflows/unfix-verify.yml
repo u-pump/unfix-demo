@@ -1,0 +1,25 @@
+name: Unfix verify
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  unfix-verify:
+    # The owner must label an in-repository PR for each verification run.
+    # Fork PRs never enter a job that has the private installer credential.
+    if: github.event.label.name == 'verify-fix' && github.event.sender.login == 'u-pump' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authorize private Unfix install
+        shell: bash
+        env:
+          CPLUS_REPO_TOKEN: ${{ secrets.CPLUS_REPO_TOKEN }}
+        run: |
+          test -n "$CPLUS_REPO_TOKEN"
+          git config --global url."https://x-access-token:${CPLUS_REPO_TOKEN}@github.com/u-pump/c-plus".insteadOf "https://github.com/u-pump/c-plus"
+      - uses: u-pump/c-plus/.github/actions/cplus-verify@main
+        with:
+          project-path: .
+          base: ${{ github.event.pull_request.base.ref }}
